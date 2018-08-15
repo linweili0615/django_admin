@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -50,12 +51,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ORIGIN_ALLOW_ALL = True
+
 ROOT_URLCONF = 'django_admin.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['vue-ci/dist'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -76,9 +79,23 @@ WSGI_APPLICATION = 'django_admin.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE' : 'django.db.backends.mysql',
+        'NAME' : 'ci',
+        'USER' : 'root',
+        'PASSWORD' : '123456a',
+        'HOST' : '10.100.99.151',
+        'PORT' : '3306'
+     }#,
+    # 'hvdb':{   #配置第二个数据库节点名称
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'testdjango', #第二个数据库的名称
+    #     'USER': 'root',
+    #     'PASSWORD': '123456789',
+    #     'HOST':'192.168.1.1',
+    #     'PORT':'3306',
+    # }
 }
 
 
@@ -120,4 +137,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "vue-ci/dist/static"),
+]
+
 TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
+
