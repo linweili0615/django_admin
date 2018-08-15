@@ -4,6 +4,7 @@ import HelloWorld from '@/components/HelloWorld'
 
 Vue.use(Router)
 
+//f
 export default new Router({
   routes: [
     {
