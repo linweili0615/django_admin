@@ -16,8 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from ci import views
+from ci.jenkins import jenkins_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index', views.test),
+    path('get_jobs', jenkins_views.get_jobs),
 ]
