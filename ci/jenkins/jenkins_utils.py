@@ -19,7 +19,7 @@ class jenkins_tools(object):
         print('Now, %s from Jenkins %s.' % (current_user['fullName'], version))
         return server
 
-    #查询job是否存在
+    #查询job是否存在1
     def job_exists(self, job_name):
         # server = self.init_server()
         # print('get_job_info: %s' % server.get_job_info(name=job_name))
