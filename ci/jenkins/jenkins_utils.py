@@ -3,6 +3,22 @@
 import jenkins, socket, json
 from ci import result_data
 
+
+def job_exists(func):
+    def inner(self, **kwargs):
+        print('job_exists:kwargs: %s' % kwargs)
+        jenkins_server = self.init_server()
+        try:
+            if not jenkins_server.job_exists(kwargs['job_name']):
+                print('%s is runing' % func.__name__)
+                kwargs['server'] = jenkins_server
+                print('kwargs: %s' % kwargs)
+                return func(self, **kwargs)
+        except jenkins.JenkinsException:
+            print('job: %s exists' % kwargs['job_name'])
+            return False
+    return inner
+
 class jenkins_tools(object):
     def __init__(self, jenkins_url, username, password):
         self.jenkins_url = jenkins_url
@@ -18,10 +34,18 @@ class jenkins_tools(object):
         print('Now, %s from Jenkins %s.' % (current_user['fullName'], version))
         return server
 
-    #检查job是否存在
-    def job_exists(self, server):
-        def assert_job(job_name):
-            return server.assert_job_exists(name=job_name)
+    # 创建job工程
+    @job_exists
+    def create_job(self,**kwargs):
+        print('create_job:kwargs %s' % kwargs)
+        return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=kwargs['job_info'])
+
+    # #检查job是否存在
+    # def job_exists(self, server):
+    #     def assert_job(job_name):
+    #         print('job_name:%s'% job_name)
+    #         return server.job_exists(name=job_name)
+    #     return assert_job
 
     #查询job信息
     def get_job_info(self, job_name):
@@ -37,15 +61,18 @@ class jenkins_tools(object):
 
     #查询job配置
     def get_job_config(self, job_name):
-        return self.init_server().get_job_config(name=job_name)
-
-    #创建job工程
-    def create_job(self, job_name, job_info):
         server = self.init_server()
-        if self.job_exists(server,job_name):
-            return server.create_job(name=job_name, config_xml=job_info)
+        job = self.job_exists(server)
+        status = job(job_name)
+        # print('status: %s' % status)
+        if status:
+            return self.init_server().get_job_config(name=job_name)
         else:
-            return False
+            print('%s : job 不存在' % job_name)
+            return False,'%s : job 不存在' % job_name
+
+
+
 
     #修改job配置
     def reconfig_job(self, job_name, job_info):
@@ -53,7 +80,14 @@ class jenkins_tools(object):
 
     #构建job工程
     def build_job(self, job_name):
-        return self.init_server().build_job(name=job_name)
+        server = self.init_server()
+        job = self.job_exists(server)
+        status = job(job_name)
+        if status:
+            return server.build_job(name=job_name)
+        else:
+            print('%s : job 不存在' % job_name)
+            return False,'%s : job 不存在' % job_name
 
     #暂停构建
     def stop_build(self, job_name, job_num):
