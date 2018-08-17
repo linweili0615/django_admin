@@ -9,11 +9,10 @@ def job_exists(func):
         print('job_exists:kwargs: %s' % kwargs)
         jenkins_server = self.init_server()
         try:
-            if not jenkins_server.job_exists(kwargs['job_name']):
-                print('%s is runing' % func.__name__)
-                kwargs['server'] = jenkins_server
-                print('kwargs: %s' % kwargs)
-                return func(self, **kwargs)
+            print('%s is runing' % func.__name__)
+            kwargs['server'] = jenkins_server
+            print('kwargs: %s' % kwargs)
+            return func(self, **kwargs)
         except jenkins.JenkinsException:
             print('job: %s exists' % kwargs['job_name'])
             return False
