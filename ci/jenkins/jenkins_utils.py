@@ -1,6 +1,8 @@
 #/usr/bin/env python3
 #coding=utf-8
 import jenkins, socket, json
+from ci import result_data
+
 class jenkins_tools(object):
     def __init__(self, jenkins_url, username, password):
         self.jenkins_url = jenkins_url
@@ -17,8 +19,9 @@ class jenkins_tools(object):
         return server
 
     #检查job是否存在
-    def job_exists(self, job_name):
-        return self.init_server().job_exists(name=job_name)
+    def job_exists(self, server):
+        def assert_job(job_name):
+            return server.assert_job_exists(name=job_name)
 
     #查询job信息
     def get_job_info(self, job_name):
@@ -34,12 +37,15 @@ class jenkins_tools(object):
 
     #查询job配置
     def get_job_config(self, job_name):
-        info = self.init_server().get_job_config(name=job_name)
-        return json.dumps(info)
+        return self.init_server().get_job_config(name=job_name)
 
     #创建job工程
     def create_job(self, job_name, job_info):
-        return self.init_server().create_job(name=job_name, config_xml=job_info)
+        server = self.init_server()
+        if self.job_exists(server,job_name):
+            return server.create_job(name=job_name, config_xml=job_info)
+        else:
+            return False
 
     #修改job配置
     def reconfig_job(self, job_name, job_info):
