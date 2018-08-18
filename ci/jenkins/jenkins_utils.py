@@ -53,12 +53,10 @@ class jenkins_tools(object):
         #     print job['name']
         return kwargs['server'].get_jobs()
 
-
-
     #获取job最后构建number
-    @job_init
     def get_lastBuildNumber(self, **kwargs):
-        return kwargs['server'].get_job_info(name=kwargs['job_name'])['lastCompletedBuild']['number']
+        print('get_lastBuildNumber:kwargs: %s' % kwargs)
+        return kwargs['server'].get_job_info(name=kwargs['job_name'])['lastBuild']['number']
 
     #查询job配置
     def get_job_config(self, **kwargs):
@@ -76,12 +74,16 @@ class jenkins_tools(object):
     #暂停构建
     @job_init
     def stop_build(self, **kwargs):
-        return kwargs['server'].stop_build(name=kwargs['job_name'],number=kwargs['job_number'])
+        job_number = self.get_lastBuildNumber(**kwargs)
+        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'],job_number))
+        return kwargs['server'].stop_build(name=kwargs['job_name'],number=job_number)
     
     #删除构建
     @job_init
     def delete_build(self, **kwargs):
-        return kwargs['server'].delete_build(name=kwargs['job_name'], number=kwargs['job_number'])
+        job_number = self.get_lastBuildNumber(**kwargs)
+        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
+        return kwargs['server'].delete_build(name=kwargs['job_name'], number=job_number)
 
     #删除job工作目录
     @job_init
@@ -91,12 +93,16 @@ class jenkins_tools(object):
     #获取构建信息
     @job_init
     def get_build_console_output(self, **kwargs):
-        return kwargs['server'].get_build_console_output(name=kwargs['job_name'],number=kwargs['job_number'])
+        job_number = self.get_lastBuildNumber(**kwargs)
+        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
+        return kwargs['server'].get_build_console_output(name=kwargs['job_name'],number=job_number)
 
     # 获取测试报告
     @job_init
     def get_build_console_output(self, **kwargs):
-        return kwargs['server'].get_build_test_report(name=kwargs['job_name'], number=kwargs['job_number'])
+        job_number = self.get_lastBuildNumber(**kwargs)
+        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
+        return kwargs['server'].get_build_test_report(name=kwargs['job_name'], number=job_number)
 
     #执行pipline Groovy脚本
     def run_script(self, **kwargs):
