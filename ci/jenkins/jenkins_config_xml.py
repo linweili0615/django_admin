@@ -114,4 +114,4 @@ class job_config_xml(object):
     </runPostStepsIfResult>
 </maven2-moduleset>
 '''.format(self.description, self.url,self.credentialsId, self.BranchSpec, self.configName, self.remoteDirectory, self.sourceFiles, self.execCommand)
-        return CONFIG_XML
+        return str(CONFIG_XML)
