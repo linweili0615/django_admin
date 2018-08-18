@@ -5,18 +5,18 @@ from ci.jenkins.jenkins_utils import jenkins_tools
 
 #添加job
 def get_job(request):
-    jk = jenkins_tools('http://10.100.14.56:8888/', 'huodong', '123456a')
+    jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
     job_data = {
-        'job_name' : 'test_jenkins',
+        'job_name' : 'test888',
         'job_info' : 'test123'
     }
-    dd = jk.get_job_config(**job_data)
+    dd = jk.delete_all_build(**job_data)
     print(dd)
     return HttpResponse(dd)
 
 #添加job
 def create_job(request):
-    jk = jenkins_tools('http://10.100.14.56:8888/', 'huodong', '123456a')
+    jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
     job_data = {
         'job_name' : 'test_jenkins',
         'config_xml' : {
@@ -33,6 +33,15 @@ def create_job(request):
     dd = jk.create_job(**job_data)
     print(dd)
     return HttpResponse(dd)
+
+#添加job
+def get_lastBuildNumber(request):
+    import jenkins, socket
+    server = jenkins.Jenkins('http://10.100.99.151:8888/', username='huodong', password='123456a',
+                             timeout=socket._GLOBAL_DEFAULT_TIMEOUT)
+    kk = server.delete_build('test888',6)
+    print(kk)
+    return HttpResponse(kk)
 
 
 
