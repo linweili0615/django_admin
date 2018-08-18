@@ -22,8 +22,6 @@ class jenkins_tools(object):
         server = jenkins.Jenkins(self.jenkins_url, username=self.username, password=self.password,
                                  timeout=socket._GLOBAL_DEFAULT_TIMEOUT)
         current_user = server.get_whoami()
-        # version = server.get_version()
-        # print('Now, %s from Jenkins %s.' % (current_user['fullName'],version))
         print('Now, %s from Jenkins .' % (current_user['fullName']))
         return server
 
@@ -36,7 +34,6 @@ class jenkins_tools(object):
     # 创建job工程
     @job_init
     def create_job(self, **kwargs):
-        # return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=kwargs['job_info'])
         kwargs['server'].copy_job(kwargs['job_name'], kwargs['copy_job_name'])
         return kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
 
@@ -44,11 +41,11 @@ class jenkins_tools(object):
     #查询job信息
     @job_init
     def get_job_info(self, **kwargs):
-        return kwargs['server'].init_server().get_job_info(name=kwargs['job_name'])
+        return kwargs['server'].get_job_info(name=kwargs['job_name'])
 
     # 查询所有job信息
     @job_init
-    def get_info(self, **kwargs):
+    def get_jobs(self, **kwargs):
         # for job in jobs:
         #     print job['name']
         return kwargs['server'].get_jobs()
