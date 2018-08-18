@@ -2,10 +2,9 @@
 #coding=utf-8
 import jenkins, socket
 
-
 def job_init(func):
     def inner(self, **kwargs):
-        print('%s is runing' % func.__name__)
+        print('func:%s is runing' % func.__name__)
         kwargs['server'] = self.init_server()
         print('kwargs: %s' % kwargs)
         return func(self, **kwargs)
@@ -28,9 +27,9 @@ class jenkins_tools(object):
     # 创建job工程
     @job_init
     def create_job(self,**kwargs):
-        from ci.jenkins import jenkins_config_xml
+        from ci.jenkins.jenkins_config_xml import job_config_xml
         if kwargs['config_xml']:
-            CONFIG = jenkins_config_xml(
+            JOB_CONFIG = job_config_xml(
                 kwargs['config_xml']['description'],
                 kwargs['config_xml']['url'],
                 kwargs['config_xml']['credentialsId'],
@@ -39,12 +38,10 @@ class jenkins_tools(object):
                 kwargs['config_xml']['remoteDirectory'],
                 kwargs['config_xml']['sourceFiles'],
                 kwargs['config_xml']['execCommand']
-            )
-            CONFIG.get_config_xml()
-            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=CONFIG)
+            ).get_config_xml()
+            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=JOB_CONFIG)
         else:
             return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
-
 
     # 复制创建job工程
     @job_init
@@ -52,23 +49,12 @@ class jenkins_tools(object):
         kwargs['server'].copy_job(kwargs['job_name'], kwargs['copy_job_name'])
         return kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
 
-
-    #查询job信息
-    @job_init
-    def get_job_info(self, **kwargs):
-        return kwargs['server'].get_job_info(name=kwargs['job_name'])
-
-    # 查询所有job信息
+    # 查询所有job
     @job_init
     def get_jobs(self, **kwargs):
         # for job in jobs:
         #     print job['name']
         return kwargs['server'].get_jobs()
-
-    #获取job最后构建number
-    def get_lastBuildNumber(self, **kwargs):
-        print('get_lastBuildNumber:kwargs: %s' % kwargs)
-        return kwargs['server'].get_job_info(name=kwargs['job_name'])['lastBuild']['number']
 
     #查询job配置
     @job_init
@@ -85,19 +71,52 @@ class jenkins_tools(object):
     def build_job(self, **kwargs):
         return kwargs['server'].build_job(name=kwargs['job_name'])
 
+    # 查询job信息
+    @job_init
+    def get_job_info(self, **kwargs):
+        return kwargs['server'].get_job_info(name=kwargs['job_name'])
+
+    # 获取job最后构建number
+
+    def get_lastBuildNumber(self, **kwargs):
+        job_number = kwargs['server'].get_job_info(name=kwargs['job_name'])['lastBuild']['number']
+        print('job_name: %s, lastBuildNumber : %s' % (kwargs['job_name'], job_number))
+        return job_number
+
+    # 获取job所有构建number
+    def get_AllBuildNumber(self, **kwargs):
+        job_number = kwargs['server'].get_job_info(name=kwargs['job_name'])['builds']
+        job_list = []
+        for job in job_number:
+            job_list.append(job['number'])
+        print('job_name: %s, AllBuildNumberList : %s' % (kwargs['job_name'], job_list))
+        return job_list
+
     #暂停构建
     @job_init
     def stop_build(self, **kwargs):
         job_number = self.get_lastBuildNumber(**kwargs)
-        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'],job_number))
         return kwargs['server'].stop_build(name=kwargs['job_name'],number=job_number)
-    
-    #删除构建
+
+    # 删除当前job所有旧构建
     @job_init
-    def delete_build(self, **kwargs):
-        job_number = self.get_lastBuildNumber(**kwargs)
-        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
-        return kwargs['server'].delete_build(name=kwargs['job_name'], number=job_number)
+    def delete_all_build(self, **kwargs):
+        dict = {'status': True,'msg' : '暂未进行任何操作'}
+        job_number_list = self.get_AllBuildNumber(**kwargs)
+        delete_number_list = []
+        current_job_number = self.get_lastBuildNumber(**kwargs)
+        if job_number_list:
+            for job_number in job_number_list:
+                #查询是否为当前构建number
+                if current_job_number != job_number:
+                    kwargs['server'].delete_build(name=kwargs['job_name'], number=job_number)
+                    delete_number_list.append(job_number)
+            dict['msg'] = '该job：{}构建记录已删除'.format(delete_number_list)
+        else:
+            dict['status'] = False
+            dict['msg'] = '该job不存在构建记录'
+        return dict
+
 
     #删除job工作目录
     @job_init
@@ -108,14 +127,12 @@ class jenkins_tools(object):
     @job_init
     def get_build_console_output(self, **kwargs):
         job_number = self.get_lastBuildNumber(**kwargs)
-        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
         return kwargs['server'].get_build_console_output(name=kwargs['job_name'],number=job_number)
 
     # 获取测试报告
     @job_init
     def get_build_console_output(self, **kwargs):
         job_number = self.get_lastBuildNumber(**kwargs)
-        print('job_name: %s ,lastBuildNumber: %s' % (kwargs['job_name'], job_number))
         return kwargs['server'].get_build_test_report(name=kwargs['job_name'], number=job_number)
 
     #执行pipline Groovy脚本
