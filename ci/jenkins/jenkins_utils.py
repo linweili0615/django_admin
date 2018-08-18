@@ -30,7 +30,7 @@ class jenkins_tools(object):
     def create_job(self,**kwargs):
         from ci.jenkins import jenkins_config_xml
         if kwargs['config_xml']:
-            config = jenkins_config_xml(
+            CONFIG = jenkins_config_xml(
                 kwargs['config_xml']['description'],
                 kwargs['config_xml']['url'],
                 kwargs['config_xml']['credentialsId'],
@@ -40,13 +40,13 @@ class jenkins_tools(object):
                 kwargs['config_xml']['sourceFiles'],
                 kwargs['config_xml']['execCommand']
             )
-            config.get_config_xml()
-            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=config)
+            CONFIG.get_config_xml()
+            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=CONFIG)
         else:
             return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
 
 
-    # 创建job工程
+    # 复制创建job工程
     @job_init
     def copy_job(self, **kwargs):
         kwargs['server'].copy_job(kwargs['job_name'], kwargs['copy_job_name'])
