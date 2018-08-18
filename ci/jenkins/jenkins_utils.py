@@ -28,12 +28,27 @@ class jenkins_tools(object):
     # 创建job工程
     @job_init
     def create_job(self,**kwargs):
-        # return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=kwargs['job_info'])
-        return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
+        from ci.jenkins import jenkins_config_xml
+        if kwargs['config_xml']:
+            config = jenkins_config_xml(
+                kwargs['config_xml']['description'],
+                kwargs['config_xml']['url'],
+                kwargs['config_xml']['credentialsId'],
+                kwargs['config_xml']['BranchSpec'],
+                kwargs['config_xml']['configName'],
+                kwargs['config_xml']['remoteDirectory'],
+                kwargs['config_xml']['sourceFiles'],
+                kwargs['config_xml']['execCommand']
+            )
+            config.get_config_xml()
+            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=config)
+        else:
+            return kwargs['server'].create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
+
 
     # 创建job工程
     @job_init
-    def create_job(self, **kwargs):
+    def copy_job(self, **kwargs):
         kwargs['server'].copy_job(kwargs['job_name'], kwargs['copy_job_name'])
         return kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
 
@@ -56,10 +71,12 @@ class jenkins_tools(object):
         return kwargs['server'].get_job_info(name=kwargs['job_name'])['lastBuild']['number']
 
     #查询job配置
+    @job_init
     def get_job_config(self, **kwargs):
         return kwargs['server'].get_job_config(name=kwargs['job_name'])
 
     #修改job配置
+    @job_init
     def reconfig_job(self, **kwargs):
         return kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=kwargs['config_xml'])
 
@@ -102,18 +119,22 @@ class jenkins_tools(object):
         return kwargs['server'].get_build_test_report(name=kwargs['job_name'], number=job_number)
 
     #执行pipline Groovy脚本
+    @job_init
     def run_script(self, **kwargs):
         return kwargs['server'].run_script(script_name=kwargs['script_name'])
 
     #添加插件
+    @job_init
     def install_plugin(self, **kwargs):
         return kwargs['server'].install_plugin(name=kwargs['pluins_name'])
 
     #查询正在生成的列表
+    @job_init
     def get_running_builds(self, **kwargs):
         return kwargs['server'].get_running_builds()
 
     #获取views列表
+    @job_init
     def get_views(self, **kwargs):
         return kwargs['server'].get_views()
 
