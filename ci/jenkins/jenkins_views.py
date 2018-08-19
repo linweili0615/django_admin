@@ -4,15 +4,20 @@ from django.shortcuts import render,HttpResponse
 from ci.jenkins.jenkins_utils import jenkins_tools
 
 #添加job
-def get_job(request):
+def get_jobs(request):
     jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     job_data = {
         'job_name' : 'test888',
         'job_info' : 'test123'
     }
-    dd = jk.delete_all_build(**job_data)
-    print(dd)
-    return HttpResponse(dd)
+    dd = jk.get_jobs(**job_data)
+    job_list = []
+    if dd:
+        for job in dd:
+            job_list.append(job['name'])
+    print(job_list)
+    return HttpResponse(job_list)
 
 #添加job
 def create_job(request):

@@ -81,12 +81,28 @@ class jenkins_tools(object):
     # 查询所有job[0]['name']
     @job_init
     def get_jobs(self, **kwargs):
-        return kwargs['server'].get_jobs()
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        try:
+            kwargs['server'].get_jobs()
+            dict['msg'] = '查询所有job名称成功'
+            return dict
+        except:
+            dict['msg'] = '查询所有job名称失败'
+            dict['status'] = False
+            return dict
 
     #查询job配置
     @job_init
     def get_job_config(self, **kwargs):
-        return kwargs['server'].get_job_config(name=kwargs['job_name'])
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        try:
+            kwargs['server'].get_job_config(name=kwargs['job_name'])
+            dict['msg'] = '查询job配置成功'
+            return dict
+        except:
+            dict['msg'] = '查询job配置失败'
+            dict['status'] = False
+            return dict
 
     #修改job配置
     @job_init
