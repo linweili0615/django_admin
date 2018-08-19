@@ -1,7 +1,9 @@
 <template>
   <el-table
     :data="tableData5"
-    style="width: 100%">
+    v-loading="loading"
+    max-height="900px"
+    style="width: 90%">
     <el-table-column type="expand">
       <template slot-scope="props">
         <el-form label-position="left" inline class="demo-table-expand">
@@ -38,11 +40,17 @@
     </el-table-column>
     <el-table-column
       label="服务名称"
-      prop="name">
+      prop="name"
+      :filters="[{text: '2016-05-01', value: '2016-05-01'}, {text: '2016-05-02', value: '2016-05-02'}, {text: '2016-05-03', value: '2016-05-03'}, {text: '2016-05-04', value: '2016-05-04'}]"
+    :filter-method="filterHandler"
+      >
     </el-table-column>
     <el-table-column
       label="服务器地址"
-      prop="name">
+      prop="name"
+      :filters="[{text: '2016-05-01', value: '2016-05-01'}, {text: '2016-05-02', value: '2016-05-02'}, {text: '2016-05-03', value: '2016-05-03'}, {text: '2016-05-04', value: '2016-05-04'}]"
+    :filter-method="filterHandler"
+      >
     </el-table-column>
     <el-table-column
       label="服务描述"
@@ -89,6 +97,7 @@
 export default {
     data() {
       return {
+        loading : true,
         tableData5: [{
           id: '12987122',
           name: '好滋好味鸡蛋仔',
@@ -124,10 +133,23 @@ export default {
         }]
       }
     },
+    methods : {
+        formatter(row, column) {
+        return row.address;
+      },
+      filterTag(value, row) {
+        return row.tag === value;
+      },
+      filterHandler(value, row, column) {
+        const property = column['property'];
+        return row[property] === value;
+      }
+    },
     beforeCreate(){
       this.$axios.get('http://localhost:8000/test').then(
         (res) => {
             console.log(res);
+            this.loading = false;
         })
       
     }

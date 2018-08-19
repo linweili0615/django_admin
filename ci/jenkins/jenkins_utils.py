@@ -84,7 +84,7 @@ class jenkins_tools(object):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
             dict['data'] = kwargs['server'].get_jobs()
-            dict['msg'] = '查询所有job名称失败'
+            dict['msg'] = '查询所有job名称成功'
             return dict
         except:
             dict['msg'] = '查询所有job名称失败'

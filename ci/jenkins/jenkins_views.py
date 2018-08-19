@@ -10,10 +10,11 @@ def get_jobs(request):
         'job_name' : 'test888',
         'job_info' : 'test123'
     }
-    dd = jk.get_jobs(**job_data)
+    jobs = jk.get_jobs(**job_data)
+    print('jobs: %s' % jobs)
     job_list = []
-    if dd:
-        for job in dd['data']:
+    if jobs['status']:
+        for job in jobs['data']:
             job_list.append(job['name'])
     print(job_list)
     return HttpResponse(job_list)
