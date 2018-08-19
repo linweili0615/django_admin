@@ -123,6 +123,13 @@ export default {
           shopId: '10333'
         }]
       }
+    },
+    beforeCreate(){
+      this.$axios.get('http://localhost:8000/test').then(
+        (res) => {
+            console.log(res);
+        })
+      
     }
   }
 </script>

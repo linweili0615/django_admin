@@ -21,5 +21,5 @@ from ci.jenkins import jenkins_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('index', views.test),
-    path('assert_job_exists', jenkins_views.get_jobs),
+    path('test', jenkins_views.get_jobs),
 ]

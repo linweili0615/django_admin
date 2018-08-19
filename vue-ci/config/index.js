@@ -11,14 +11,14 @@ module.exports = {
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
     proxyTable: {
-      '/api':{
-        target : 'http://localhost:8000',
-        changeOrigin : true,
-        pathRewrite : {
-          '^/api' : '/'
-          //写 '/api' 就等于写 'http://localhost:8000'
-        }
-      }
+      // '/api':{
+      //   target : 'http://localhost:8000',
+      //   changeOrigin : true,
+      //   pathRewrite : {
+      //     '^/api' : '/'
+      //     //写 '/api' 就等于写 'http://localhost:8000'
+      //   }
+      // }
     },
 
     // Various Dev Server settings
