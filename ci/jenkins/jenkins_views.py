@@ -5,19 +5,20 @@ from ci.jenkins.jenkins_utils import jenkins_tools
 
 #添加job
 def get_jobs(request):
-    jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
+    jk = jenkins_tools('http://10.100.14.56:8888/', 'huodong', '123456a')
     job_data = {
-        'job_name' : 'test888',
+        'job_name' : 'hd-thirdplat-landing-web-9',
         'job_info' : 'test123'
     }
-    jobs = jk.get_jobs(**job_data)
-    print('jobs: %s' % jobs)
-    job_list = []
-    if jobs['status']:
-        for job in jobs['data']:
-            job_list.append(job['name'])
-    print(job_list)
-    return HttpResponse(job_list)
+    # jobs = jk.get_jobs(**job_data)
+    # print('jobs: %s' % jobs)
+    # job_list = []
+    # if jobs['status']:
+    #     for job in jobs['data']:
+    #         job_list.append(job['name'])
+    # print(job_list)
+    jobs = jk.delete_all_build(**job_data)
+    return HttpResponse(jobs['msg'])
 
 #添加job
 def create_job(request):
