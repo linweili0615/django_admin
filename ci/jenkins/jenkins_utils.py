@@ -1,11 +1,31 @@
 #/usr/bin/env python3
 #coding=utf-8
-import jenkins, socket
+import jenkins, socket, threading, xmltodict, json
+
+jenkins_local = threading.local()
+
+def xmltojson(xmlstr):
+    #parse是的xml解析器
+    xmlparse = xmltodict.parse(xmlstr)
+    # print('xmlparse: %s' % type(xmlparse))
+    #json库dumps()是将dict转化成json格式，loads()是将json转化成dict格式。
+    #dumps()方法的ident=1，格式化json
+    jsonstr = json.dumps(xmlparse,indent=1)
+    # print(type(jsonstr))
+    # print(jsonstr)
+    return xmlparse
 
 def job_init(func):
     def inner(self, **kwargs):
         print('func:%s is runing' % func.__name__)
-        kwargs['server'] = self.init_server()
+        try:
+            if jenkins_local.server:
+                print('读取到线程中的server')
+                pass
+        except:
+            print('该线程中server为空，初始化server......')
+            jenkins_local.server = self.init_server()
+            print('初始化server完成')
         print('kwargs: %s' % kwargs)
         return func(self, **kwargs)
     return inner
@@ -46,7 +66,7 @@ class jenkins_tools(object):
                 kwargs['config_xml']['execCommand']
             ).get_config_xml()
             try:
-                kwargs['server'].create_job(name=kwargs['job_name'], config_xml=job_config)
+                jenkins_local.server.create_job(name=kwargs['job_name'], config_xml=job_config)
                 dict['msg'] = '添加job成功'
                 return dict
             except:
@@ -55,7 +75,7 @@ class jenkins_tools(object):
                 return dict
         else:
             try:
-                kwargs['server'].create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
+                jenkins_local.server.create_job(name=kwargs['job_name'], config_xml=jenkins.EMPTY_CONFIG_XML)
                 dict['msg'] = '添加空白job成功'
                 return dict
             except:
@@ -68,9 +88,9 @@ class jenkins_tools(object):
     def copy_job(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            kwargs['server'].copy_job(kwargs['job_name'], kwargs['copy_job_name'])
+            jenkins_local.server.copy_job(kwargs['job_name'], kwargs['copy_job_name'])
             dict['msg'] = '复制job工程成功'
-            kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
+            jenkins_local.server.reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
             dict['msg'] = '复制job工程修改配置文件成功'
             return dict
         except:
@@ -83,24 +103,11 @@ class jenkins_tools(object):
     def get_jobs(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            dict['data'] = kwargs['server'].get_jobs()
+            dict['data'] = jenkins_local.server.get_jobs()
             dict['msg'] = '查询所有job名称成功'
             return dict
         except:
             dict['msg'] = '查询所有job名称失败'
-            dict['status'] = False
-            return dict
-
-    #查询job配置
-    @job_init
-    def get_job_config(self, **kwargs):
-        dict = {'status': True, 'msg': '暂未进行任何操作'}
-        try:
-            dict['data'] = kwargs['server'].get_job_config(name=kwargs['job_name'])
-            dict['msg'] = '查询job配置成功'
-            return dict
-        except:
-            dict['msg'] = '查询job配置失败'
             dict['status'] = False
             return dict
 
@@ -121,7 +128,7 @@ class jenkins_tools(object):
                 kwargs['config_xml']['execCommand']
             ).get_config_xml()
             try:
-                kwargs['server'].reconfig_job(name=kwargs['job_name'], config_xml=job_config)
+                jenkins_local.server.reconfig_job(name=kwargs['job_name'], config_xml=job_config)
                 dict['msg'] = '修改job工程配置文件成功'
                 return dict
             except:
@@ -138,7 +145,7 @@ class jenkins_tools(object):
     def build_job(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            kwargs['server'].build_job(name=kwargs['job_name'])
+            jenkins_local.server.build_job(name=kwargs['job_name'])
             dict['msg'] = '构建job成功'
             return dict
         except:
@@ -151,7 +158,39 @@ class jenkins_tools(object):
     def get_job_info(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            dict['data'] = kwargs['server'].get_job_info(name=kwargs['job_name'])
+            dict['data'] = jenkins_local.server.get_job_info(name=kwargs['job_name'])
+            dict['msg'] = '获取job信息成功'
+            return dict
+        except:
+            dict['msg'] = '获取job信息失败'
+            dict['status'] = False
+            return dict
+
+    # 查询job配置
+    @job_init
+    def get_job_config(self, **kwargs):
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        try:
+            dict['data'] = jenkins_local.server.get_job_config(name=kwargs['job_name'])
+            dict['msg'] = '查询job配置成功'
+            return dict
+        except:
+            dict['msg'] = '查询job配置失败'
+            dict['status'] = False
+            return dict
+
+    # 查询job信息
+    @job_init
+    def get_all_jobs_info(self, **kwargs):
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        try:
+            jobs = self.get_jobs()
+            jobs_dict = {}
+            for cc in jobs['data']:
+                info = jenkins_local.server.get_job_config(name=cc['name'])
+                jobs_dict[cc['name']] = xmltojson(info)
+
+            dict['data'] = jobs_dict
             dict['msg'] = '获取job信息成功'
             return dict
         except:
@@ -160,10 +199,11 @@ class jenkins_tools(object):
             return dict
 
     # 获取job最后构建number
+    @job_init
     def get_lastBuildNumber(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            job_number = kwargs['server'].get_job_info(name=kwargs['job_name'])['lastBuild']['number']
+            job_number = jenkins_local.server.get_job_info(name=kwargs['job_name'])['lastBuild']['number']
             print('job_name: %s, lastBuildNumber : %s' % (kwargs['job_name'], job_number))
             dict['data'] = job_number
             dict['msg'] = '获取当前job最后构建number成功'
@@ -174,10 +214,11 @@ class jenkins_tools(object):
             return dict
 
     # 获取job所有构建number
+    @job_init
     def get_AllBuildNumber(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            job_number = kwargs['server'].get_job_info(name=kwargs['job_name'])['builds']
+            job_number = jenkins_local.server.get_job_info(name=kwargs['job_name'])['builds']
             job_list = []
             for job in job_number:
                 job_list.append(job['number'])
@@ -197,7 +238,7 @@ class jenkins_tools(object):
         job = self.get_lastBuildNumber(**kwargs)
         try:
             if job['status']:
-                kwargs['server'].stop_build(name=kwargs['job_name'], number=job['data'])
+                jenkins_local.server.stop_build(name=kwargs['job_name'], number=job['data'])
             else:
                 dict['msg'] = job['msg']
                 dict['status'] = False
@@ -219,7 +260,7 @@ class jenkins_tools(object):
                 #查询是否为当前构建number
                 if current_job_number['data'] != job_number:
                     try:
-                        kwargs['server'].delete_build(name=kwargs['job_name'], number=job_number)
+                        jenkins_local.server.delete_build(name=kwargs['job_name'], number=job_number)
                         delete_number_list.append(job_number)
                         dict['msg'] = '删除当前job所有旧构建成功'
                     except:
@@ -239,7 +280,7 @@ class jenkins_tools(object):
     def wipeout_job_workspace(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            kwargs['server'].wipeout_job_workspace(name=kwargs['job_name'])
+            jenkins_local.server.wipeout_job_workspace(name=kwargs['job_name'])
             dict['msg'] = '删除job工作目录成功'
             return dict
         except:
@@ -254,7 +295,7 @@ class jenkins_tools(object):
         job = self.get_lastBuildNumber(**kwargs)
         if job['status']:
             try:
-                dict['data'] = kwargs['server'].get_build_console_output(name=kwargs['job_name'], number=job['data'])
+                dict['data'] = jenkins_local.server.get_build_console_output(name=kwargs['job_name'], number=job['data'])
                 dict['msg'] = '获取job构建信息成功'
                 return dict
             except:
@@ -273,7 +314,7 @@ class jenkins_tools(object):
         job = self.get_lastBuildNumber(**kwargs)
         if job['status']:
             try:
-                dict['data'] = kwargs['server'].get_build_test_report(name=kwargs['job_name'], number=job['data'])
+                dict['data'] = jenkins_local.server.get_build_test_report(name=kwargs['job_name'], number=job['data'])
                 dict['msg'] = '获取测试报告成功'
                 return dict
             except:
@@ -289,7 +330,7 @@ class jenkins_tools(object):
     def run_script(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            kwargs['server'].run_script(script_name=kwargs['script_name'])
+            jenkins_local.server.run_script(script_name=kwargs['script_name'])
             dict['msg'] = '执行Groovy脚本成功'
             return dict
         except:
@@ -302,7 +343,7 @@ class jenkins_tools(object):
     def install_plugin(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            kwargs['server'].install_plugin(name=kwargs['pluins_name'])
+            jenkins_local.server.install_plugin(name=kwargs['pluins_name'])
             dict['msg'] = '添加插件成功'
             return dict
         except:
@@ -315,7 +356,7 @@ class jenkins_tools(object):
     def get_running_builds(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            dict['data'] = kwargs['server'].get_running_builds()
+            dict['data'] = jenkins_local.server.get_running_builds()
             dict['msg'] = '查询正在构建的列表成功'
             return dict
         except:
@@ -328,7 +369,7 @@ class jenkins_tools(object):
     def get_views(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            dict['data'] = kwargs['server'].get_views()
+            dict['data'] = jenkins_local.server.get_views()
             dict['msg'] = '获取views列表成功'
             return dict
         except:

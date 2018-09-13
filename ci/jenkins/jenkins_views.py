@@ -2,23 +2,20 @@
 #coding=utf-8
 from django.shortcuts import render,HttpResponse
 from ci.jenkins.jenkins_utils import jenkins_tools
+import json
 
 #添加job
 def get_jobs(request):
-    jk = jenkins_tools('http://10.100.14.56:8888/', 'huodong', '123456a')
-    job_data = {
-        'job_name' : 'hd-thirdplat-landing-web-9',
-        'job_info' : 'test123'
-    }
-    # jobs = jk.get_jobs(**job_data)
-    # print('jobs: %s' % jobs)
-    # job_list = []
-    # if jobs['status']:
-    #     for job in jobs['data']:
-    #         job_list.append(job['name'])
-    # print(job_list)
-    jobs = jk.delete_all_build(**job_data)
-    return HttpResponse(jobs['msg'])
+    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    jobs_info = jk.get_all_jobs_info()
+    for key in jobs_info['data']:
+        print('job: %s' % key)
+        print('git_url: %s' % jobs_info['data'][key]['maven2-moduleset']['scm']['userRemoteConfigs']['hudson.plugins.git.UserRemoteConfig']['url'])
+        print('git_branches: %s' % jobs_info['data'][key]['maven2-moduleset']['scm']['branches']['hudson.plugins.git.BranchSpec']['name'])
+
+    jobs_info_json = json.dumps(jobs_info)
+    # print(jobs_info_json)
+    return HttpResponse(jobs_info_json)
 
 #添加job
 def create_job(request):
