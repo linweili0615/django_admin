@@ -1,6 +1,7 @@
 #/usr/bin/env python3
 #coding=utf-8
 import jenkins, socket, threading, xmltodict, json
+from datetime import datetime
 
 jenkins_local = threading.local()
 
@@ -20,12 +21,12 @@ def job_init(func):
         print('func:%s is runing' % func.__name__)
         try:
             if jenkins_local.server:
-                print('读取到线程中的server')
+                # print('读取到线程中的server')
                 pass
         except:
-            print('该线程中server为空，初始化server......')
+            # print('该线程中server为空，初始化server......')
             jenkins_local.server = self.init_server()
-            print('初始化server完成')
+            # print('初始化server完成')
         print('kwargs: %s' % kwargs)
         return func(self, **kwargs)
     return inner
@@ -104,6 +105,7 @@ class jenkins_tools(object):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
             dict['data'] = jenkins_local.server.get_jobs()
+            # print('get_jobs: %s' % dict['data'])
             dict['msg'] = '查询所有job名称成功'
             return dict
         except:
@@ -145,8 +147,10 @@ class jenkins_tools(object):
     def build_job(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            jenkins_local.server.build_job(name=kwargs['job_name'])
+            build_num = jenkins_local.server.build_job(name=kwargs['name'], parameters = kwargs['parameters'] )
+            dict['data'] = build_num
             dict['msg'] = '构建job成功'
+            print('构建成功：%s' % build_num)
             return dict
         except:
             dict['msg'] = '构建job失败'
@@ -184,10 +188,14 @@ class jenkins_tools(object):
     def get_all_jobs_info(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
+            # print('get_jobs starting ... %s' % datetime.now())
             jobs = self.get_jobs()
+            # print('get_jobs ended . %s' % datetime.now())
             jobs_dict = {}
             for cc in jobs['data']:
+                # print(' %s get_job_config starting ... %s' % (cc['name'],datetime.now()))
                 info = jenkins_local.server.get_job_config(name=cc['name'])
+                # print(' %s get_job_config ended  %s' % (cc['name'],datetime.now()))
                 jobs_dict[cc['name']] = xmltojson(info)
 
             dict['data'] = jobs_dict
