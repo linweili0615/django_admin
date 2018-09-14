@@ -175,7 +175,7 @@ class jenkins_tools(object):
     def get_job_config(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            dict['data'] = jenkins_local.server.get_job_config(name=kwargs['job_name'])
+            dict['data'] = jenkins_local.server.get_job_config(name=kwargs['name'])
             dict['msg'] = '查询job配置成功'
             return dict
         except:
@@ -218,6 +218,21 @@ class jenkins_tools(object):
             return dict
         except:
             dict['msg'] = '获取当前job最后构建number失败'
+            dict['status'] = False
+            return dict
+
+    # 获取job最后构建number
+    @job_init
+    def get_lastBuild(self, **kwargs):
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        try:
+            lastBuild = jenkins_local.server.get_job_info(name=kwargs['name'])
+            print('job_name: %s, lastBuild: %s' % (kwargs['name'], lastBuild))
+            dict['data'] = lastBuild
+            dict['msg'] = '获取当前job最后构建记录成功'
+            return dict
+        except:
+            dict['msg'] = '获取当前job最后构建记录失败'
             dict['status'] = False
             return dict
 

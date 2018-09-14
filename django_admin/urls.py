@@ -24,5 +24,6 @@ urlpatterns = [
     path('get_all_jobs_info', jenkins_views.get_all_jobs_info),
     path('get_jobs_list', jenkins_views.get_jobs_list),
     path('get_job_config', jenkins_views.get_job_config),
-    path('build_job_by_params', jenkins_views.build_job_by_params)
+    path('build_job_by_params', jenkins_views.build_job_by_params),
+    path('get_last_build', jenkins_views.get_last_build)
 ]
