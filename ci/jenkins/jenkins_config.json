@@ -1,0 +1,130 @@
+{
+  "maven2-moduleset": {
+  "@plugin": "maven-plugin@3.1.2",
+  "description": "dfjsjkl",
+  "keepDependencies": "false",
+  "properties": {
+   "jenkins.model.BuildDiscarderProperty": {
+    "strategy": {
+     "@class": "hudson.tasks.LogRotator",
+     "daysToKeep": "-1",
+     "numToKeep": "1",
+     "artifactDaysToKeep": "-1",
+     "artifactNumToKeep": "-1"
+    }
+   },
+   "hudson.model.ParametersDefinitionProperty": {
+    "parameterDefinitions": {
+     "com.gem.persistentparameter.PersistentStringParameterDefinition": {
+      "@plugin": "persistent-parameter@1.1",
+      "name": "branch",
+      "description": null,
+      "defaultValue": "*/master",
+      "successfulOnly": "false"
+     }
+    }
+   }
+  },
+  "scm": {
+   "@class": "hudson.plugins.git.GitSCM",
+   "@plugin": "git@3.9.1",
+   "configVersion": "2",
+   "userRemoteConfigs": {
+    "hudson.plugins.git.UserRemoteConfig": {
+     "url": "https://github.com/linweili0615/testsearch.git",
+     "credentialsId": "c25c24f6-b166-4140-a482-53bf01a6c759"
+    }
+   },
+   "branches": {
+    "hudson.plugins.git.BranchSpec": {
+     "name": "$branch"
+    }
+   },
+   "doGenerateSubmoduleConfigurations": "false",
+   "submoduleCfg": {
+    "@class": "list"
+   },
+   "extensions": null
+  },
+  "canRoam": "true",
+  "disabled": "false",
+  "blockBuildWhenDownstreamBuilding": "false",
+  "blockBuildWhenUpstreamBuilding": "false",
+  "triggers": null,
+  "concurrentBuild": "false",
+  "goals": "clean package",
+  "aggregatorStyleBuild": "true",
+  "incrementalBuild": "false",
+  "ignoreUpstremChanges": "true",
+  "ignoreUnsuccessfulUpstreams": "false",
+  "archivingDisabled": "false",
+  "siteArchivingDisabled": "false",
+  "fingerprintingDisabled": "false",
+  "resolveDependencies": "false",
+  "processPlugins": "false",
+  "mavenValidationLevel": "-1",
+  "runHeadless": "false",
+  "disableTriggerDownstreamProjects": "true",
+  "settings": {
+   "@class": "jenkins.mvn.DefaultSettingsProvider"
+  },
+  "globalSettings": {
+   "@class": "jenkins.mvn.DefaultGlobalSettingsProvider"
+  },
+  "reporters": null,
+  "publishers": null,
+  "buildWrappers": null,
+  "prebuilders": null,
+  "postbuilders": {
+   "jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin": {
+    "@plugin": "publish-over-ssh@1.19.1",
+    "delegate": {
+     "consolePrefix": "SSH:",
+     "delegate": {
+      "@plugin": "publish-over@0.22",
+      "publishers": {
+       "jenkins.plugins.publish__over__ssh.BapSshPublisher": {
+        "@plugin": "publish-over-ssh@1.19.1",
+        "configName": "test123",
+        "verbose": "false",
+        "transfers": {
+         "jenkins.plugins.publish__over__ssh.BapSshTransfer": {
+          "remoteDirectory": "source/test",
+          "sourceFiles": "**/target/demo-1.0.jar",
+          "excludes": null,
+          "removePrefix": null,
+          "remoteDirectorySDF": "false",
+          "flatten": "false",
+          "cleanRemote": "false",
+          "noDefaultExcludes": "false",
+          "makeEmptyDirs": "false",
+          "patternSeparator": "[, ]+",
+          "execCommand": "sh /usr/local/software/test.sh test demo-1.0.jar 9301",
+          "execTimeout": "120000",
+          "usePty": "false",
+          "useAgentForwarding": "false"
+         }
+        },
+        "useWorkspaceInPromotion": "false",
+        "usePromotionTimestamp": "false"
+       }
+      },
+      "continueOnError": "false",
+      "failOnError": "false",
+      "alwaysPublishFromMaster": "false",
+      "hostConfigurationAccess": {
+       "@class": "jenkins.plugins.publish_over_ssh.BapSshPublisherPlugin",
+       "@reference": "../.."
+      }
+     }
+    }
+   }
+  },
+  "runPostStepsIfResult": {
+   "name": "SUCCESS",
+   "ordinal": "0",
+   "color": "BLUE",
+   "completeBuild": "true"
+  }
+ }
+}

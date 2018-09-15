@@ -14,6 +14,21 @@ def get_jobs_list(request):
         jobs_list.append(cc['name'])
     return HttpResponse(json.dumps({'jobs_list':jobs_list}))
 
+def create_job(request):
+    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    args = {
+        'name' : 'test999',
+        'description' : '测试下这个问题',
+        'git_url' : 'https://github.com/linweili0615/testsearch.git',
+        'git_branches' : '*/master',
+        'ssh' : 'test1234',
+        'remotedirectory' : 'source/test',
+        'sourcefiles' : '**/target/demo-2.0.jar',
+        'execcommand' : 'sh /usr/local/software/test3.sh test demo-1.0.jar 9301'
+    }
+    info = jk.create_job(**args)
+    return HttpResponse(json.dumps({'info':info}))
+
 def build_job_by_params(request):
     jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
@@ -28,7 +43,7 @@ def build_job_by_params(request):
 def get_job_config(request):
     jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
-    config = jk.get_job_config(**{'name': 'test'})['data']
+    config = jk.get_job_config(**{'name': 'test666'})['data']
     print('config_xml: %s' % config)
     from ci.jenkins.jenkins_utils import xmltojson
     config_data = xmltojson(config)
@@ -47,17 +62,6 @@ def get_all_jobs_info(request):
     jobs_info_json = json.dumps(jobs_info)
     print(jobs_info_json)
     return HttpResponse(jobs_info_json)
-
-#添加job
-def create_job(request):
-    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
-    # jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
-    job_data = {
-
-    }
-    dd = jk.create_job(**job_data)
-    print(dd)
-    return HttpResponse(dd)
 
 def get_last_build(request):
     jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
@@ -88,6 +92,9 @@ def get_all_jobs_info(request):
     print(job_list_info)
     print(job_list_config)
     return HttpResponse(job_list_info)
+
+
+
 
 
 
