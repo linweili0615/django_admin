@@ -2,34 +2,39 @@
 #coding=utf-8
 
 
-class job_config_xml(object):
-    def __init__(self, description, git_url, git_branches, credentialsId, BranchSpec, configName, remoteDirectory, sourceFiles, execCommand):
+class job_config(object):
+    def __init__(self, description, git_branches, git_url, configName, remoteDirectory, sourceFiles, execCommand):
         self.description = description
-        self.git_url = git_url
         self.git_branches = git_branches
-        self.credentialsId = credentialsId
-        self.BranchSpec = BranchSpec
+        self.git_url = git_url
         self.configName = configName
         self.remoteDirectory = remoteDirectory
         self.sourceFiles = sourceFiles
         self.execCommand = execCommand
 
-    def get_config_xml(self):
+    def __config_xml(self):
         CONFIG_XML = '''
 <?xml version='1.1' encoding='UTF-8'?>
 <maven2-moduleset plugin="maven-plugin@3.1.2">
-  <actions/>
   <description>{}</description>
   <keepDependencies>false</keepDependencies>
   <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>1</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
-        <hudson.model.TextParameterDefinition>
+        <com.gem.persistentparameter.PersistentStringParameterDefinition plugin="persistent-parameter@1.1">
           <name>branch</name>
           <description></description>
-          <defaultValue>*/master</defaultValue>
-          <trim>false</trim>
-        </hudson.model.TextParameterDefinition>
+          <defaultValue>{}</defaultValue>
+          <successfulOnly>false</successfulOnly>
+        </com.gem.persistentparameter.PersistentStringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
@@ -38,7 +43,7 @@ class job_config_xml(object):
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
         <url>{}</url>
-        <credentialsId>{}</credentialsId>
+        <credentialsId>c25c24f6-b166-4140-a482-53bf01a6c759</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
@@ -56,10 +61,6 @@ class job_config_xml(object):
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
-  <rootModule>
-    <groupId>com.example</groupId>
-    <artifactId>demo</artifactId>
-  </rootModule>
   <goals>clean package</goals>
   <aggregatorStyleBuild>true</aggregatorStyleBuild>
   <incrementalBuild>false</incrementalBuild>
@@ -125,5 +126,8 @@ class job_config_xml(object):
     <completeBuild>true</completeBuild>
   </runPostStepsIfResult>
 </maven2-moduleset>
-'''.format(self.description, self.git_url, self.git_branches, self.credentialsId, self.BranchSpec, self.configName, self.remoteDirectory, self.sourceFiles, self.execCommand)
+'''.format(self.description, self.git_branches, self.git_url, self.configName, self.remoteDirectory, self.sourceFiles, self.execCommand)
         return str(CONFIG_XML)
+
+    def get_xml(self):
+        return self.__config_xml()

@@ -9,7 +9,7 @@ jenkins_local = threading.local()
 def xmltojson(xmlstr):
     #parse是的xml解析器
     xmlparse = xmltodict.parse(xmlstr)
-    # print('xmltodict: %s' % xmlparse)
+    print('xmltodict: %s' % xmlparse)
     #json库dumps()是将dict转化成json格式，loads()是将json转化成dict格式。
     #dumps()方法的ident=1，格式化json
     # jsonstr = json.dumps(xmlparse,indent=1)
@@ -145,6 +145,7 @@ class jenkins_tools(object):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
             dict['data'] = jenkins_local.server.get_job_config(name=kwargs['name'])
+            print(dict['data'])
             dict['msg'] = '查询job配置成功'
             return dict
         except:
@@ -371,38 +372,50 @@ class jenkins_tools(object):
 
     def __get_normal_config(self, **kwargs):
         import os
-        with open('ci/jenkins/jenkins_config.json', 'r', encoding='utf-8') as f:
-            normal_config = json.load(f)
-        print('normal_config: %s' % normal_config)
+        # with open('ci/jenkins/jenkins_config.json', 'r', encoding='utf-8') as f:
+        #     normal_config = json.load(f)
+        # print('normal_config: %s' % normal_config)
         # print('kwargs: %s' % kwargs)
-        # description
-        normal_config['maven2-moduleset']['description'] = kwargs['description']
-        # git_url
-        normal_config['maven2-moduleset']['scm']['userRemoteConfigs'][
-            'hudson.plugins.git.UserRemoteConfig']['url'] = kwargs['git_url']
-        # git_branches
-        normal_config['maven2-moduleset']['properties']['hudson.model.ParametersDefinitionProperty']['parameterDefinitions'][
-            'com.gem.persistentparameter.PersistentStringParameterDefinition']['defaultValue'] = kwargs['git_branches']
-        # ssh
-        normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin']['delegate']['delegate']['publishers'][
-            'jenkins.plugins.publish__over__ssh.BapSshPublisher']['configName'] = kwargs['ssh']
-        # remotedirectory
-        normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-            'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-            'jenkins.plugins.publish__over__ssh.BapSshTransfer']['remoteDirectory'] = kwargs['remotedirectory']
-        # sourcefiles
-        normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-            'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-            'jenkins.plugins.publish__over__ssh.BapSshTransfer']['sourceFiles'] = kwargs['sourcefiles']
-        # execcommand
-        normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-            'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-            'jenkins.plugins.publish__over__ssh.BapSshTransfer']['execCommand'] = kwargs['execcommand']
+        from ci.jenkins.jenkins_config_xml import job_config
+        normal_config = job_config(
+            kwargs['description'],
+            kwargs['git_branches'],
+            kwargs['git_url'],
+            kwargs['ssh'],
+            kwargs['remotedirectory'],
+            kwargs['sourcefiles'],
+            kwargs['execcommand']
+        ).get_xml()
 
-        xml = dicttoxml.dicttoxml(normal_config).decode(encoding='utf-8')
-        # print(type(xml))
-        print(xml)
-        return xml
+        # description
+        # normal_config['maven2-moduleset']['description'] = kwargs['description']
+        # # git_url
+        # normal_config['maven2-moduleset']['scm']['userRemoteConfigs'][
+        #     'hudson.plugins.git.UserRemoteConfig']['url'] = kwargs['git_url']
+        # # git_branches
+        # normal_config['maven2-moduleset']['properties']['hudson.model.ParametersDefinitionProperty']['parameterDefinitions'][
+        #     'com.gem.persistentparameter.PersistentStringParameterDefinition']['defaultValue'] = kwargs['git_branches']
+        # # ssh
+        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin']['delegate']['delegate']['publishers'][
+        #     'jenkins.plugins.publish__over__ssh.BapSshPublisher']['configName'] = kwargs['ssh']
+        # # remotedirectory
+        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
+        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
+        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['remoteDirectory'] = kwargs['remotedirectory']
+        # # sourcefiles
+        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
+        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
+        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['sourceFiles'] = kwargs['sourcefiles']
+        # # execcommand
+        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
+        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
+        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['execCommand'] = kwargs['execcommand']
+        #
+        # xml = dicttoxml.dicttoxml(normal_config).decode(encoding='utf-8')
+        # # print(type(xml))
+        # print(xml)
+        # return xml
+        return normal_config
 
     # 创建job工程
     @job_init

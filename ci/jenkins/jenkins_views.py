@@ -44,7 +44,7 @@ def get_job_config(request):
     jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
     config = jk.get_job_config(**{'name': 'test666'})['data']
-    print('config_xml: %s' % config)
+    # print('config_xml: %s' % config)
     from ci.jenkins.jenkins_utils import xmltojson
     config_data = xmltojson(config)
     jobs_info_json = json.dumps(jobs_info_dict(config_data),ensure_ascii=False)
