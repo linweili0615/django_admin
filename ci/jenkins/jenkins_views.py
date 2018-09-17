@@ -77,8 +77,8 @@ def get_job_config(request):
 
 #添加job
 def get_all_jobs_info(request):
-    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
-    # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
     jobs_info = jk.get_all_jobs_info()
     jobs_info_target = {}
     for key in jobs_info['data']:
@@ -92,30 +92,6 @@ def get_last_build(request):
     # jk = jenkins_tools('http://10.100.99.151:8888/', 'huodong', '123456a')
     lastBuild = jk.get_lastBuild(**{'name':'test'})
     return HttpResponse(json.dumps({'lastBuild':lastBuild},ensure_ascii=False))
-
-def get_all_jobs_info(request):
-    jk = jenkins_tools('http://10.100.14.56:8888/', 'huodong', '123456a')
-    job_data = {
-        'job_name': 'hd-thirdplat-landing-web-9',
-        'job_info': 'test123'
-    }
-    jobs = jk.get_jobs(**job_data)
-    joblist = []
-    for job in jobs['data']:
-        joblist.append(job['name'])
-    job_list_info = {}
-    for jb in joblist:
-        job_data['job_name'] = jb
-        job_list_info[jb] = (jk.get_job_info(**job_data)['data'])
-
-    job_list_config = {}
-
-    for jb in joblist:
-        job_data['job_name'] = jb
-        job_list_config[jb] = (jk.get_job_config(**job_data)['data'])
-    print(job_list_info)
-    print(job_list_config)
-    return HttpResponse(job_list_info)
 
 
 

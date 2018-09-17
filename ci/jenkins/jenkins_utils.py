@@ -50,12 +50,31 @@ class jenkins_tools(object):
             raise Exception('获取Jenkins连接信息失败')
             return None
 
+    # 返回str类型的xml配置
+    def __get_normal_config(self, **kwargs):
+        from ci.jenkins.jenkins_config_xml import job_config
+        normal_config = job_config(
+            kwargs['description'],
+            kwargs['git_branches'],
+            kwargs['git_url'],
+            kwargs['ssh'],
+            kwargs['remotedirectory'],
+            kwargs['sourcefiles'],
+            kwargs['execcommand']
+        ).get_xml()
+        return normal_config
+
+    #修改xml配置
+    def __reconfig_xml(self, **kwargs):
+
+        pass
+
     # 复制创建job工程
     @job_init
     def copy_job(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
         try:
-            jenkins_local.server.copy_job(kwargs['job_name'], kwargs['copy_job_name'])
+            jenkins_local.server.copy_job(kwargs['name'], kwargs['to_name'])
             dict['msg'] = '复制job工程成功'
             jenkins_local.server.reconfig_job(name=kwargs['job_name'], config_xml=jenkins.RECONFIG_XML)
             dict['msg'] = '复制job工程修改配置文件成功'
@@ -76,20 +95,6 @@ class jenkins_tools(object):
             return dict
         except:
             dict['msg'] = '查询所有job名称失败'
-            dict['status'] = False
-            return dict
-
-    #修改job配置
-    @job_init
-    def reconfig_job(self, **kwargs):
-        dict = {'status': True, 'msg': '暂未进行任何操作'}
-        job_config = self.__get_normal_config(**kwargs)
-        try:
-            jenkins_local.server.reconfig_job(name=kwargs['name'], config_xml=job_config)
-            dict['msg'] = '修改job工程配置文件成功'
-            return dict
-        except:
-            dict['msg'] = '修改job工程配置文件失败'
             dict['status'] = False
             return dict
 
@@ -353,19 +358,20 @@ class jenkins_tools(object):
             dict['status'] = False
             return dict
 
-    #返回str类型的xml配置
-    def __get_normal_config(self, **kwargs):
-        from ci.jenkins.jenkins_config_xml import job_config
-        normal_config = job_config(
-            kwargs['description'],
-            kwargs['git_branches'],
-            kwargs['git_url'],
-            kwargs['ssh'],
-            kwargs['remotedirectory'],
-            kwargs['sourcefiles'],
-            kwargs['execcommand']
-        ).get_xml()
-        return normal_config
+
+    # 修改job配置
+    @job_init
+    def reconfig_job(self, **kwargs):
+        dict = {'status': True, 'msg': '暂未进行任何操作'}
+        job_config = self.__get_normal_config(**kwargs)
+        try:
+            jenkins_local.server.reconfig_job(name=kwargs['name'], config_xml=job_config)
+            dict['msg'] = '修改job工程配置文件成功'
+            return dict
+        except:
+            dict['msg'] = '修改job工程配置文件失败'
+            dict['status'] = False
+            return dict
 
     # 创建job工程
     @job_init
