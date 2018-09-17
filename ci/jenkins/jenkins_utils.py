@@ -1,8 +1,6 @@
 #/usr/bin/env python3
 #coding=utf-8
-import jenkins, socket, threading, xmltodict, json
-from datetime import datetime
-import dicttoxml
+import jenkins, socket, threading, xmltodict
 
 jenkins_local = threading.local()
 
@@ -49,9 +47,8 @@ class jenkins_tools(object):
             print('Now, %s from Jenkins .' % (current_user['fullName']))
             return server
         except:
-            raise BaseException('获取Jenkins连接信息失败')
-            print('获取Jenkins连接信息失败')
-
+            raise Exception('获取Jenkins连接信息失败')
+            return None
 
     # 复制创建job工程
     @job_init
@@ -86,28 +83,13 @@ class jenkins_tools(object):
     @job_init
     def reconfig_job(self, **kwargs):
         dict = {'status': True, 'msg': '暂未进行任何操作'}
-        from ci.jenkins.jenkins_config_xml import job_config_xml
-        if kwargs['config_xml']:
-            job_config = job_config_xml(
-                kwargs['config_xml']['description'],
-                kwargs['config_xml']['url'],
-                kwargs['config_xml']['credentialsId'],
-                kwargs['config_xml']['BranchSpec'],
-                kwargs['config_xml']['configName'],
-                kwargs['config_xml']['remoteDirectory'],
-                kwargs['config_xml']['sourceFiles'],
-                kwargs['config_xml']['execCommand']
-            ).get_config_xml()
-            try:
-                jenkins_local.server.reconfig_job(name=kwargs['job_name'], config_xml=job_config)
-                dict['msg'] = '修改job工程配置文件成功'
-                return dict
-            except:
-                dict['msg'] = '修改job工程配置文件失败'
-                dict['status'] = False
-                return dict
-        else:
-            dict['msg'] = '修改job工程配置文件为空'
+        job_config = self.__get_normal_config(**kwargs)
+        try:
+            jenkins_local.server.reconfig_job(name=kwargs['name'], config_xml=job_config)
+            dict['msg'] = '修改job工程配置文件成功'
+            return dict
+        except:
+            dict['msg'] = '修改job工程配置文件失败'
             dict['status'] = False
             return dict
 
@@ -124,6 +106,7 @@ class jenkins_tools(object):
         except:
             dict['msg'] = '构建job失败'
             dict['status'] = False
+        finally:
             return dict
 
     # 查询job信息
@@ -370,12 +353,8 @@ class jenkins_tools(object):
             dict['status'] = False
             return dict
 
+    #返回str类型的xml配置
     def __get_normal_config(self, **kwargs):
-        import os
-        # with open('ci/jenkins/jenkins_config.json', 'r', encoding='utf-8') as f:
-        #     normal_config = json.load(f)
-        # print('normal_config: %s' % normal_config)
-        # print('kwargs: %s' % kwargs)
         from ci.jenkins.jenkins_config_xml import job_config
         normal_config = job_config(
             kwargs['description'],
@@ -386,51 +365,21 @@ class jenkins_tools(object):
             kwargs['sourcefiles'],
             kwargs['execcommand']
         ).get_xml()
-
-        # description
-        # normal_config['maven2-moduleset']['description'] = kwargs['description']
-        # # git_url
-        # normal_config['maven2-moduleset']['scm']['userRemoteConfigs'][
-        #     'hudson.plugins.git.UserRemoteConfig']['url'] = kwargs['git_url']
-        # # git_branches
-        # normal_config['maven2-moduleset']['properties']['hudson.model.ParametersDefinitionProperty']['parameterDefinitions'][
-        #     'com.gem.persistentparameter.PersistentStringParameterDefinition']['defaultValue'] = kwargs['git_branches']
-        # # ssh
-        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin']['delegate']['delegate']['publishers'][
-        #     'jenkins.plugins.publish__over__ssh.BapSshPublisher']['configName'] = kwargs['ssh']
-        # # remotedirectory
-        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['remoteDirectory'] = kwargs['remotedirectory']
-        # # sourcefiles
-        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['sourceFiles'] = kwargs['sourcefiles']
-        # # execcommand
-        # normal_config['maven2-moduleset']['postbuilders']['jenkins.plugins.publish__over__ssh.BapSshBuilderPlugin'][
-        #     'delegate']['delegate']['publishers']['jenkins.plugins.publish__over__ssh.BapSshPublisher']['transfers'][
-        #     'jenkins.plugins.publish__over__ssh.BapSshTransfer']['execCommand'] = kwargs['execcommand']
-        #
-        # xml = dicttoxml.dicttoxml(normal_config).decode(encoding='utf-8')
-        # # print(type(xml))
-        # print(xml)
-        # return xml
         return normal_config
 
     # 创建job工程
     @job_init
     def create_job(self, **kwargs):
-        print(kwargs)
         dict = {'status': True, 'msg': '暂未进行任何操作'}
-        # try:
-        job_config = self.__get_normal_config(**kwargs)
-        dict['data'] = jenkins_local.server.create_job(name=kwargs['name'], config_xml=job_config)
-        dict['msg'] = '创建job工程成功'
-        return dict
-        # except:
-        #     dict['msg'] = '创建job工程失败'
-        #     dict['status'] = False
-        #     return dict
+        try:
+            job_config = self.__get_normal_config(**kwargs['config_xml'])
+            dict['data'] = jenkins_local.server.create_job(name=kwargs['name'], config_xml=job_config)
+            dict['msg'] = '创建job工程成功'
+        except:
+            dict['msg'] = '创建job工程失败'
+            dict['status'] = False
+        finally:
+            return dict
 
 
 

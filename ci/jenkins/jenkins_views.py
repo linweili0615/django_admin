@@ -5,6 +5,7 @@ from ci.jenkins.jenkins_utils import jenkins_tools
 from ci.jenkins.utils import jobs_info_dict
 import json
 
+#获取job列表
 def get_jobs_list(request):
     jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
@@ -13,37 +14,60 @@ def get_jobs_list(request):
     for cc in jobs['data']:
         jobs_list.append(cc['name'])
     return HttpResponse(json.dumps({'jobs_list':jobs_list}))
-
+#添加job
 def create_job(request):
-    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
     args = {
         'name' : 'test999',
-        'description' : '测试下这个问题',
-        'git_url' : 'https://github.com/linweili0615/testsearch.git',
-        'git_branches' : '*/master',
-        'ssh' : 'test1234',
-        'remotedirectory' : 'source/test',
-        'sourcefiles' : '**/target/demo-2.0.jar',
-        'execcommand' : 'sh /usr/local/software/test3.sh test demo-1.0.jar 9301'
+        'config_xml':{
+            'description': '测试下这个问题',
+            'git_url': 'http://git.tuandai888.com/user/user-service-admin.git',
+            'git_branches': '*/Feature/sqlExecute_20180912',
+            'ssh': '10.100.14.5',
+            'remotedirectory': 'source_code/user-service-admin',
+            'sourcefiles': '**/target/user-service-admin-1.0-SNAPSHOT.jar',
+            'execcommand': 'echo "hello"'
+        }
+
     }
     info = jk.create_job(**args)
-    return HttpResponse(json.dumps({'info':info}))
+    return HttpResponse(json.dumps({'info':info},ensure_ascii=False))
+#修改job配置
+def reconfig_job(request):
+    jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    args = {
+        'name' : 'test999',
+        'config_xml':{
+            'description': '测试下这个问题',
+            'git_url': 'http://git.tuandai888.com/user/user-service-admin.git',
+            'git_branches': '*/Feature/sqlExecute_20180912',
+            'ssh': '10.100.14.5',
+            'remotedirectory': 'source_code/user-service-admin',
+            'sourcefiles': '**/target/user-service-admin-1.0-SNAPSHOT.jar',
+            'execcommand': 'echo "hello"'
+        }
 
+    }
+    info = jk.reconfig_job(**args)
+    return HttpResponse(json.dumps({'info':info},ensure_ascii=False))
+#参数化构建
 def build_job_by_params(request):
-    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
-    # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
     job = jk.build_job(**{
-        'name': 'test',
+        'name': 'test999',
         'parameters':{
-            'branch': '*/'+'master'
+            'branch': '*/develop'
         }
     })
     return HttpResponse(json.dumps({'job_num':job['data'],'msg':job['msg']}, ensure_ascii=False))
 
 def get_job_config(request):
-    jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
-    # jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
-    config = jk.get_job_config(**{'name': 'test666'})['data']
+    # jk = jenkins_tools('http://localhost:8080/', 'linweili', '123456a')
+    jk = jenkins_tools('http://10.100.14.134:8080/', 'jenkins888', '123456a')
+    config = jk.get_job_config(**{'name': 'test999'})['data']
     # print('config_xml: %s' % config)
     from ci.jenkins.jenkins_utils import xmltojson
     config_data = xmltojson(config)
